@@ -1,22 +1,24 @@
-package server
+package main
+
 import (
 	"log"
 
-	"pilates-booking-backend/internal/db"
-
-	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
+	"pilates-reservation-backend/internal/config"
+	"pilates-reservation-backend/internal/db"
+	"pilates-reservation-backend/internal/router"
 )
 
 func main() {
-	_ = godotenv.Load()
+	cfg := config.Load()
 
-	if err := db.Connect(); err != nil {
+	database, err := db.Connect(cfg.DatabaseURL)
+	if err != nil {
 		log.Fatal(err)
 	}
 
-	db.RunMigrations()
+	r := router.Setup(database)
 
-	r := gin.Default()
-	r.Run(":8080")
+	if err := r.Run(":8080"); err != nil {
+		log.Fatal(err)
+	}
 }

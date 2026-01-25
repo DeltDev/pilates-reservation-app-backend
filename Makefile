@@ -1,0 +1,2 @@
+postgresinit:
+	docker run -d  --name pilates-postgres -e POSTGRES_USER=pilates -e POSTGRES_PASSWORD=pilatespass -e POSTGRES_DB=pilates_db -p 5432:5432 -v pilates_pgdata:/var/lib/postgresql/data postgres:17
