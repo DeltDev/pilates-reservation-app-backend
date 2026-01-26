@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-
 	"pilates-reservation-backend/internal/config"
 	"pilates-reservation-backend/internal/db"
 	"pilates-reservation-backend/internal/router"
@@ -11,14 +9,10 @@ import (
 func main() {
 	cfg := config.Load()
 
-	database, err := db.Connect(cfg.DatabaseURL)
-	if err != nil {
-		log.Fatal(err)
-	}
+	database := db.Connect(cfg.DBSource)
+	defer database.Close()
 
 	r := router.Setup(database)
 
-	if err := r.Run(":8080"); err != nil {
-		log.Fatal(err)
-	}
+	r.Run(":8080")
 }

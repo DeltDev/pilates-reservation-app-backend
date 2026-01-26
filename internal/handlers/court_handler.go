@@ -4,9 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"pilates-reservation-backend/internal/repositories"
-
 	"github.com/gin-gonic/gin"
+	"pilates-reservation-backend/internal/repositories"
 )
 
 type CourtHandler struct {
@@ -36,14 +35,15 @@ func (h *CourtHandler) GetAvailableCourts(c *gin.Context) {
 		return
 	}
 
-	courts, err := h.repo.GetAvailable(
+	courts, err := h.repo.FindAvailable(
 		c.Request.Context(),
 		date,
 		timeslotID,
 	)
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "failed to fetch available courts",
+			"error": err.Error(),
 		})
 		return
 	}

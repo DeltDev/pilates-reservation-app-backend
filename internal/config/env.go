@@ -1,13 +1,25 @@
 package config
 
-import "os"
+import (
+	"log"
+	"os"
+
+	"github.com/joho/godotenv"
+)
 
 type Config struct {
-	DatabaseURL string
+	DBSource string
 }
 
 func Load() Config {
+	_ = godotenv.Load()
+
+	dbSource := os.Getenv("DB_SOURCE")
+	if dbSource == "" {
+		log.Fatal("DB_SOURCE is not set")
+	}
+
 	return Config{
-		DatabaseURL: os.Getenv("DATABASE_URL"),
+		DBSource: dbSource,
 	}
 }
