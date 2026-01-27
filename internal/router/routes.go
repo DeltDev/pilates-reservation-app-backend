@@ -6,11 +6,18 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/gin-contrib/cors"
 )
 
 func Setup(db *pgxpool.Pool) *gin.Engine {
 	r := gin.Default()
-
+	r.Use(cors.New(cors.Config{
+    	AllowOrigins: []string{
+        	"http://localhost:3000", 
+    	},
+    	AllowMethods: []string{"GET", "POST", "OPTIONS"},
+    	AllowHeaders: []string{"Content-Type"},
+	}))
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
@@ -28,6 +35,8 @@ func Setup(db *pgxpool.Pool) *gin.Engine {
 		api.GET("/timeslots", timeslotHandler.GetTimeslots)
 		api.GET("/courts/available", courtHandler.GetAvailableCourts)
 		api.POST("/reservations", reservationHandler.Create)
+		api.GET("/courts", courtHandler.GetAllCourts)
+		api.GET("/courts/:id", courtHandler.GetCourtAvailability)
 	}
 
 	return r

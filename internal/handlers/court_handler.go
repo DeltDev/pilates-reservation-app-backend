@@ -52,3 +52,55 @@ func (h *CourtHandler) GetAvailableCourts(c *gin.Context) {
 		"courts": courts,
 	})
 }
+
+func (h *CourtHandler) GetAllCourts(c *gin.Context) {
+	courts, err := h.repo.GetAll()
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error": "failed to fetch courts",
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"courts": courts,
+	})
+}
+
+func (h *CourtHandler) GetCourtAvailability(c *gin.Context) {
+	courtIDStr := c.Param("id")
+	date := c.Query("date")
+
+	if date == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "date is required",
+		})
+		return
+	}
+
+	courtID, err := strconv.Atoi(courtIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid court id",
+		})
+		return
+	}
+
+	court, timeslots, err := h.repo.FindAvailableTimeslots(
+		c.Request.Context(),
+		courtID,
+		date,
+	)
+
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "court not found",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"court":               court,
+		"available_timeslots": timeslots,
+	})
+}
