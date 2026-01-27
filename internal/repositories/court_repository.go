@@ -10,6 +10,7 @@ type Timeslot struct {
 	ID        int    `json:"id"`
 	StartTime string `json:"start_time"`
 	EndTime   string `json:"end_time"`
+	IsBooked  bool   `json:"is_booked"`
 }
 
 type CourtWithAvailability struct {
@@ -106,14 +107,15 @@ func (r *CourtRepository) FindAvailableTimeslots(
 	}
 
 	rows, err := r.db.Query(ctx, `
-		SELECT t.id, t.start_time, t.end_time
+		SELECT 
+			t.id, 
+			t.start_time, 
+			t.end_time,
+			CASE WHEN r.id IS NOT NULL THEN true ELSE false END as is_booked
 		FROM timeslots t
-		WHERE t.id NOT IN (
-			SELECT timeslot_id
-			FROM reservations
-			WHERE reservation_date = $1
-			  AND court_id = $2
-		)
+		LEFT JOIN reservations r ON t.id = r.timeslot_id 
+			AND r.court_id = $2 
+			AND r.reservation_date = $1
 		ORDER BY t.start_time
 	`, date, courtID)
 
@@ -125,7 +127,7 @@ func (r *CourtRepository) FindAvailableTimeslots(
 	var timeslots []Timeslot
 	for rows.Next() {
 		var t Timeslot
-		if err := rows.Scan(&t.ID, &t.StartTime, &t.EndTime); err != nil {
+		if err := rows.Scan(&t.ID, &t.StartTime, &t.EndTime, &t.IsBooked); err != nil {
 			return court, nil, err
 		}
 		timeslots = append(timeslots, t)
