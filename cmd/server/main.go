@@ -23,8 +23,9 @@ func main() {
 	}
 	log.Println("Migration successful!")
 
-	r := router.Setup(database)
+	r := router.Setup(database, cfg)
 
+	log.Println("Server starting on :8080")
 	r.Run(":8080")
 }
 
@@ -52,11 +53,21 @@ func initDatabase(db *pgxpool.Pool) error {
 			court_id INT NOT NULL,
 			customer_name TEXT NOT NULL,
 			customer_email TEXT NOT NULL,
-			status TEXT NOT NULL DEFAULT 'confirmed',
+			customer_phone TEXT,
+			status TEXT NOT NULL DEFAULT 'pending',
+			payment_status TEXT NOT NULL DEFAULT 'pending',
+			payment_token TEXT,
+			payment_redirect_url TEXT,
+			order_id TEXT UNIQUE,
+			gross_amount DECIMAL(10,2) NOT NULL DEFAULT 150000,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			CONSTRAINT fk_timeslot FOREIGN KEY (timeslot_id) REFERENCES timeslots(id) ON DELETE RESTRICT,
 			CONSTRAINT fk_court FOREIGN KEY (court_id) REFERENCES courts(id) ON DELETE RESTRICT,
 			CONSTRAINT unique_reservation UNIQUE (reservation_date, timeslot_id, court_id)
 		);`,
+		`CREATE INDEX IF NOT EXISTS idx_order_id ON reservations(order_id);`,
+		`CREATE INDEX IF NOT EXISTS idx_payment_status ON reservations(payment_status);`,
 	}
 
 	for _, q := range queries {
@@ -72,7 +83,7 @@ func initDatabase(db *pgxpool.Pool) error {
 		log.Println("Seeding Courts...")
 		_, err = db.Exec(ctx, `INSERT INTO courts (name) VALUES 
 			('Court 1'), ('Court 2'), ('Court 3'), ('Court 4'), ('Court 5'),
-			('Court 6'), ('Court 7'), ('Court 8'), ('Court 9'), ('Court 10');`) // Reduced to 10 for brevity, add more if you like
+			('Court 6'), ('Court 7'), ('Court 8'), ('Court 9'), ('Court 10');`) 
 		if err != nil {
 			return err
 		}
