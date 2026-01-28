@@ -13,7 +13,8 @@ func Setup(db *pgxpool.Pool) *gin.Engine {
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
     	AllowOrigins: []string{
-        	"http://localhost:3000", 
+        	"http://localhost:3000",
+			"https://zen-pilates.vercel.app", 
     	},
     	AllowMethods: []string{"GET", "POST", "OPTIONS"},
     	AllowHeaders: []string{"Content-Type"},
