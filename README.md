@@ -44,5 +44,8 @@ or
 
 ```go run cmd/server/main.go```
 
+### 5. Localhost URL
+
+The backend will be exposed on your local machine as http://localhost:8080
 ### Other commands
 See Makefile file in this repository to find more commands.
